@@ -1214,6 +1214,11 @@ namespace PhotoMart
             }
         }
         Random rand = new Random(System.DateTime.Now.Millisecond * (DateTime.Now.Second + 1) * (DateTime.Now.Minute + 1));
+
+        /// <summary>
+        /// SHOOT DANMAKU!
+        /// </summary>
+        /// <param name="text"></param>
         private void shootDanmaku(string text)
         {
             
