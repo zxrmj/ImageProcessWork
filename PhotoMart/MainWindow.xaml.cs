@@ -18,6 +18,7 @@ using Emgu.CV;
 using Emgu.CV.Structure;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace PhotoMart
 {
@@ -43,12 +44,14 @@ namespace PhotoMart
             "朔风吹雪飞万里，三更簌簌呜窗纸",
         };
 
+        
 
         public MainWindow()
         {
             InitializeComponent();
             var story = Resources["welcomeAnime"] as Storyboard;
             story.Begin();
+            CreateColorDict();
         }
 
         /// <summary>
@@ -1214,6 +1217,30 @@ namespace PhotoMart
             }
         }
         Random rand = new Random(System.DateTime.Now.Millisecond * (DateTime.Now.Second + 1) * (DateTime.Now.Minute + 1));
+        private Dictionary<string, System.Drawing.Color> colorDict = new Dictionary<string, System.Drawing.Color>();
+        private Dictionary<string, SolidColorBrush> brushDict = new Dictionary<string, SolidColorBrush>();
+
+        private void CreateColorDict()
+        {
+            Type type = typeof(System.Drawing.Color);
+            PropertyInfo[] pInfo = type.GetProperties();
+            foreach (var pi in pInfo)
+            {
+                if (pi.GetMethod.IsStatic)
+                {
+                    colorDict[pi.Name] = ((System.Drawing.Color)pi.GetMethod.Invoke(null, null));
+                }
+            }
+            type = typeof(System.Windows.Media.Brushes);
+            pInfo = type.GetProperties();
+            foreach (var pi in pInfo)
+            {
+                if (pi.GetMethod.IsStatic)
+                {
+                    brushDict[pi.Name] = ((SolidColorBrush)pi.GetMethod.Invoke(null, null));
+                }
+            }
+        }
 
         /// <summary>
         /// SHOOT DANMAKU!
@@ -1237,11 +1264,31 @@ namespace PhotoMart
                 da.From = ImagePanel.ActualWidth;
                 da.To = -(20 * text.Length);
                 da.Duration = new Duration(new TimeSpan(0, 0, 10));
-                if (rand.NextDouble() < 0.05)
+                if ( text.Contains("红色有角三倍速"))
                 {
                     label.Foreground = System.Windows.Media.Brushes.Red;
                     da.Duration = new Duration(new TimeSpan(0, 0, 3));
                 }
+                else if(text.Contains("彩虹"))
+                {
+                    LinearGradientBrush lgb = new LinearGradientBrush();
+                    lgb.StartPoint = new System.Windows.Point(0, 0.5);
+                    lgb.EndPoint = new System.Windows.Point(1, 0.5);
+                    lgb.GradientStops.Add(new GradientStop(Colors.Red, 0.0));
+                    lgb.GradientStops.Add(new GradientStop(Colors.Pink, 0.15));
+                    lgb.GradientStops.Add(new GradientStop(Colors.Blue, 0.33));
+                    lgb.GradientStops.Add(new GradientStop(Colors.Aqua, 0.49));
+                    lgb.GradientStops.Add(new GradientStop(Colors.Green, 0.67));
+                    lgb.GradientStops.Add(new GradientStop(Colors.Yellow, 0.84));
+                    lgb.GradientStops.Add(new GradientStop(Colors.Red, 1));
+                    label.Background = lgb;
+                    label.Foreground = System.Windows.Media.Brushes.White;
+                }
+                else if(rand.NextDouble() < 0.05)
+                {
+                    label.Foreground = brushDict.ElementAt(rand.Next(0, brushDict.Count)).Value;
+                }
+                
                 da.Completed += (a, b) =>
                 {
                     ImagePanel.Children.Remove(label);
@@ -1266,5 +1313,6 @@ namespace PhotoMart
                 shootDanmaku((string)((Label)sender).Content);
             }
         }
+
     }
 }
